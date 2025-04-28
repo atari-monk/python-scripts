@@ -7,6 +7,7 @@ setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
+             "form_fill=scripts.form_fill_cli:main"
         ],
     },
     python_requires=">=3.7",
