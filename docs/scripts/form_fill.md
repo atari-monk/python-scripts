@@ -12,3 +12,6 @@ Fill template with data
   - @@ this means list (one) of file paths, store them in array
   - Load them and add in py code blocks
   - Provide result to clipboard and optionally file  
+
+- Testing
+  - Sometimes description input is before script name, despite name first in template
