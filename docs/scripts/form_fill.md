@@ -9,7 +9,7 @@ Fill template with data
   - Select output md file by path (optional)
   - Input to fill each field `<key>` with value
   - Input loop to fill each list field `[key]`, take line by line and make bullet list of them
-  - @@ this means list (one) of file paths, store them in array
+  - $$ this means list (one) of file paths, store them in array
   - Load them and add in py code blocks
   - Provide result to clipboard and optionally file  
 

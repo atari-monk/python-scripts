@@ -23,7 +23,7 @@ class TestFormFiller:
         assert filler.get_result() == "Items:\n- apple\n- banana\n- cherry"
 
     def test_fill_file_list(self):
-        template = "Code:\n@files@"
+        template = "Code:\n$files$"
         with tempfile.NamedTemporaryFile(delete=False) as f1, tempfile.NamedTemporaryFile(delete=False) as f2:
             f1.write(b"print('hello')")
             f2.write(b"x = 42")
@@ -41,7 +41,7 @@ class TestFormFiller:
             os.unlink(f2.name)
 
     def test_combined_replacements(self):
-        template = "# <title>\n\n<description>\n\nFeatures:\n[features]\n\nCode examples:\n@code@"
+        template = "# <title>\n\n<description>\n\nFeatures:\n[features]\n\nCode examples:\n$code$"
         filler = FormFiller(template)
         filler.fill_field("title", "My Script")
         filler.fill_field("description", "A useful script")

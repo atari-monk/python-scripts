@@ -13,10 +13,10 @@ class FormFiller:
     def fill_list(self, key, items):
         self.lists[key] = items
 
-    def fill_files(self, key, file_paths):
+    def fill_files(self, key, file_paths, encoding='utf-8'):
         file_contents = []
         for path in file_paths:
-            with open(path, 'r') as f:
+            with open(path, 'r', encoding=encoding) as f:
                 file_contents.append(f.read())
         self.file_lists[key] = file_contents
 
@@ -32,13 +32,13 @@ class FormFiller:
             
         for key, contents in self.file_lists.items():
             code_blocks = '\n\n'.join(f'```python\n{content}\n```' for content in contents)
-            result = result.replace(f'@{key}@', code_blocks)
+            result = result.replace(f'${key}$', code_blocks)
             
         return result
 
     def copy_to_clipboard(self):
         pyperclip.copy(self.get_result())
 
-    def save_to_file(self, path):
-        with open(path, 'w') as f:
+    def save_to_file(self, path, encoding='utf-8'):
+        with open(path, 'w', encoding=encoding) as f:
             f.write(self.get_result())
