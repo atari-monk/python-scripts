@@ -11,6 +11,7 @@ setup(
              "dir_tree=scripts.dir_tree_cli:main",
              "folder_index=scripts.folder_indexer_cli:main",
              "form_fill=scripts.form_fill_cli:main",
+             "script_info=scripts.script_info_cli:main",
         ],
     },
     python_requires=">=3.7",

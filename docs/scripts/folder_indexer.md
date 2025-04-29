@@ -13,3 +13,4 @@ Generates index.md with md files in docs or repo root
 
 - Testing
   - Fix formating, remove empty lines
+  

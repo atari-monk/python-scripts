@@ -1,8 +1,11 @@
-# Documentation Index
+# Docs
 
 ## Scripts
+- [Dev Blog Post](scripts/dev_blog_post.md)
+- [Dir Tree](scripts/dir_tree.md)
 - [Folder Indexer](scripts/folder_indexer.md)
 - [Form Fill](scripts/form_fill.md)
+- [Script Info](scripts/script_info.md)
 
 ## Templates
 - [Class Script](templates/class_script.md)
