@@ -8,6 +8,7 @@ setup(
     entry_points={
         "console_scripts": [
              "dev_blog=scripts.dev_blog_cli:main",
+             "dir_tree=scripts.dir_tree_cli:main",
              "folder_index=scripts.folder_indexer_cli:main",
              "form_fill=scripts.form_fill_cli:main",
         ],

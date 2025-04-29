@@ -9,4 +9,4 @@
 - Questions:
   [questions]  
 - Files:
-  @files@
+  $files$

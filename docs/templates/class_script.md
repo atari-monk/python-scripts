@@ -18,4 +18,4 @@
 - Functionality:
   [functionality]  
 - Files:
-  @files@
+  $files$
