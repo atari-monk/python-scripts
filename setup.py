@@ -7,7 +7,9 @@ setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
+             "copy_paste=scripts.copy_paste_cli:main",
              "dev_blog=scripts.dev_blog_cli:main",
+             "dev_blog_index=scripts.dev_blog_index_cli:main",
              "dir_tree=scripts.dir_tree_cli:main",
              "folder_index=scripts.folder_indexer_cli:main",
              "form_fill=scripts.form_fill_cli:main",

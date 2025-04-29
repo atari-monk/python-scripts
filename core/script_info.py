@@ -20,7 +20,7 @@ class ScriptInfo:
     @classmethod
     def load_from_file(cls, file_path: Path) -> List["ScriptInfo"]:
         try:
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding='utf-8') as f:
                 data = json.load(f)
             return [cls(**item) for item in data]
         except (json.JSONDecodeError, FileNotFoundError) as e:
