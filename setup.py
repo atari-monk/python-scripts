@@ -7,15 +7,18 @@ setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
-            "copy_paste=scripts.copy_paste_cli:main",
-            "dev_blog=scripts.dev_blog_cli:main",
-            "dev_blog_index=scripts.dev_blog_index_cli:main",
-            "dir_tree=scripts.dir_tree_cli:main",
-            "folder_index=scripts.folder_indexer_cli:main",
-            "form_fill=scripts.form_fill_cli:main",
-            "script_info=scripts.script_info_cli:main",
+            # scripts
             "attention=scripts.attention:main",
             "stuff_done=scripts.stuff_done:main",
+            "twindle_twinkle_little_star=scripts.twindle_twinkle_little_star:main",
+            # tools
+            "copy_paste=tools.copy_paste.cli:main",
+            "dev_blog_index=tools.dev_blog_index.cli:main",
+            "dev_blog_post=tools.dev_blog_post.cli:main",
+            "dir_tree=tools.dir_tree.cli:main",
+            "folder_indexer=tools.folder_indexer.cli:main",
+            "form_fill=tools.form_fill.cli:main",
+            "script_info=tools.script_info.cli:main",
         ],
     },
     python_requires=">=3.7",
