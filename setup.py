@@ -10,7 +10,7 @@ setup(
             # scripts
             "attention=scripts.attention:main",
             "stuff_done=scripts.stuff_done:main",
-            "twindle_twinkle_little_star=scripts.twindle_twinkle_little_star:main",
+            "little_star=scripts.little_star:main",
             # tools
             "copy_paste=tools.copy_paste.cli:main",
             "dev_blog_index=tools.dev_blog_index.cli:main",
