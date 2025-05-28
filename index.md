@@ -1,5 +1,3 @@
-# Python Scripts
-
 ## Scripts
 
 ## Tools

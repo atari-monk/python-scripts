@@ -1,0 +1,41 @@
+[data-color-mode='dark'] body {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+[data-color-mode='dark'] main {
+  background-color: #1e1e1e;
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+[data-color-mode='dark'] header {
+  border-bottom-color: #444;
+}
+
+[data-color-mode='dark'] header h1 {
+  color: #f0f0f0;
+}
+
+[data-color-mode='dark'] p {
+  color: #e0e0e0;
+}
+
+[data-color-mode='dark'] pre {
+  background-color: #1e1e1e;
+}
+
+[data-color-mode='dark'] .highlight pre code {
+  background-color: #000000;
+}
+
+[data-color-mode='dark'] code {
+  color: #e0e0e0;
+}
+
+[data-color-mode='dark'] a {
+  color: #58a6ff;
+}
+
+[data-color-mode='dark'] footer {
+  color: #8b949e;
+}

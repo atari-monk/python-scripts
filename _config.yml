@@ -1,2 +1,7 @@
-title: python-scripts
-description: Documentation for my scripts
+title: Python Scripts
+markdown: kramdown
+theme: minima
+
+defaults:
+  - values:
+      layout: default
