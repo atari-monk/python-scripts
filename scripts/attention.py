@@ -36,7 +36,7 @@ def log_attention_yaml(log_file_path: Path, message: str) -> None:
             line = line.rstrip('\n')
             if not line.strip():
                 continue
-            if not line.startswith(' '):  # date line
+            if not line.startswith(' '):
                 current_date = line.rstrip(':')
                 data[current_date] = {}
             else:
@@ -45,7 +45,7 @@ def log_attention_yaml(log_file_path: Path, message: str) -> None:
                     if current_date is not None:
                         data[current_date][time_part] = msg_part
                 except ValueError:
-                    pass  # ignore malformed lines
+                    pass
 
     data[date][current_time] = message
 
@@ -55,7 +55,7 @@ def log_attention_yaml(log_file_path: Path, message: str) -> None:
             for t in sorted(data[d].keys()):
                 f.write(f"  {t}: {data[d][t]}\n")
 
-def ask_check_in(goal: str, log_file_path: Path) -> None:
+def ask_check_in(log_file_path: Path) -> None:
     play_tone(440.0, 0.3)
     print("\n🔔 How is it going? Please type a quick reflection (or just press Enter):")
     response = input("> ").strip()
@@ -63,23 +63,21 @@ def ask_check_in(goal: str, log_file_path: Path) -> None:
         response = "(No input)"
     log_attention_yaml(log_file_path, response)
     play_tone(880.0, 0.3)
-    print(f"Keep going! Remember your goal: {goal}\n")
+    print(f"Keep going! Remember your goal: Deep focus\n")
 
-def periodic_check_in(goal: str, log_file: str, interval_sec: int) -> None:
+def periodic_check_in(log_file: str, interval_sec: int) -> None:
     try:
         while True:
             time.sleep(interval_sec)
-            ask_check_in(goal, log_file)
+            ask_check_in(log_file)
     except KeyboardInterrupt:
         print("\n⏹️ Stopping check-ins. Good job staying focused!")
 
-def main(goal: str, log_file_path: Path = Path(r"C:\atari-monk\code\apps-data-store\attention_log.yaml"), interval_min: int = 15) -> None:
-    print(f"\n🎯 Goal: {goal}")
+def main(log_file_path: Path = Path(r"C:\atari-monk\code\apps-data-store\attention_log.yaml"), interval_min: int = 15) -> None:
+    print(f"\n🎯 Goal: Deep focus")
     print(f"🕒 You will be prompted every {interval_min} minutes to check in.\nPress Ctrl+C to stop at any time.\n")
-    ask_check_in(goal, log_file_path)
-    periodic_check_in(goal, log_file_path, interval_min * 60)
+    ask_check_in(log_file_path)
+    periodic_check_in(log_file_path, interval_min * 60)
 
 if __name__ == "__main__":
-    import sys
-    user_goal = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Deep focus"
-    main(user_goal)
+    main("")
