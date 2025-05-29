@@ -1,3 +1,4 @@
+from pathlib import Path
 import yaml
 import datetime
 import time
@@ -41,7 +42,7 @@ class Beeper:
             time.sleep(1.0)
 
     def startup_test(self) -> None:
-        print("Testing 3-beep startup signal...")
+        print("testing 3-beep startup signal...")
         self.triple_beep()
 
     def stop(self) -> None:
@@ -51,15 +52,17 @@ class Beeper:
         self.stream.close()
         self.p.terminate()
 
+file_path = Path(r'c:\atari-monk\code\apps-data-store\stuff_done_log.yaml')
+
 def load_data() -> Dict[str, Any]:
     try:
-        with open('stuff_done_log.yaml', 'r') as f:
+        with open(file_path, 'r') as f:
             return yaml.safe_load(f) or {}
     except FileNotFoundError:
         return {}
 
 def save_data(data: Dict[str, Any]) -> None:
-    with open('stuff_done_log.yaml', 'w') as f:
+    with open(file_path, 'w') as f:
         yaml.dump(data, f, sort_keys=False, default_flow_style=False)
 
 def get_current_date() -> str:
@@ -82,14 +85,14 @@ def task_loop(beeper: Beeper) -> None:
     current_date = get_current_date()
 
     while True:
-        print("\n--- New Task ---")
-        task: str = input("Enter task name (max 200 chars): ")[:200]
-        print("Press Enter to start task...")
+        print("\n--- new task ---")
+        task: str = input("enter task name (max 200 chars): ").lower()[:200]
+        print("press enter to start task...")
         input()
 
         start_time = get_current_time()
-        beeper.beep()  # 1 beep at task start
-        print("Task started. Press Enter to end...")
+        beeper.beep()
+        print("task started. press enter to end...")
 
         task_start = time.time()
         last_beep = task_start
@@ -105,19 +108,19 @@ def task_loop(beeper: Beeper) -> None:
 
         while not stop_event.is_set():
             current_time = time.time()
-            if current_time - last_beep >= 900:  # Every 15 minutes
+            if current_time - last_beep >= 900:
                 beeper.triple_beep()
                 last_beep = current_time
             time.sleep(0.1)
 
         end_time = get_current_time()
-        beeper.beep()  # 1 beep at task end
+        beeper.beep()
 
         add_task(data, current_date, start_time, end_time, task)
         save_data(data)
 
         while True:
-            choice = input("Add another task? (y/n): ").strip().lower()
+            choice = input("add another task? (y/n): ").strip().lower()
             if choice in ['y', 'n']:
                 break
         if choice == 'n':
@@ -125,11 +128,11 @@ def task_loop(beeper: Beeper) -> None:
 
 def main() -> None:
     beeper = Beeper()
-    beeper.startup_test()  # 3 beep test at script start
+    beeper.startup_test()
     try:
         task_loop(beeper)
     except KeyboardInterrupt:
-        print("\nScript interrupted. Data saved.")
+        print("\nscript interrupted. data saved.")
     finally:
         beeper.stop()
 
@@ -137,4 +140,4 @@ if __name__ == "__main__":
     try:
         main()
     except ImportError as e:
-        print(f"Missing required library: {e.name}. Please install it first.")
+        print(f"missing required library: {e.name}. please install it first.")
