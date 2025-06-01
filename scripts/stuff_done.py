@@ -1,143 +1,205 @@
 from pathlib import Path
 import yaml
 import datetime
-import time
 from pyaudio import PyAudio
 import numpy as np
-from typing import Dict, Any
 import threading
 import queue
+import sys
 
-def generate_beep(freq: float = 880, duration: float = 0.08) -> bytes:
-    fs = 44100
-    samples = (np.sin(2 * np.pi * np.arange(int(fs * duration)) * freq / fs)).astype(np.float32)
-    return samples.tobytes()
+def generate_sound_wave(frequency=880, duration=0.08):
+    sample_rate = 44100
+    samples = np.sin(2 * np.pi * np.arange(int(sample_rate * duration)) * frequency / sample_rate)
+    return samples.astype(np.float32).tobytes()
 
-class Beeper:
-    def __init__(self) -> None:
-        self.p = PyAudio()
-        self.stream = self.p.open(format=self.p.get_format_from_width(4),
-                                  channels=1,
-                                  rate=44100,
-                                  output=True)
-        self.beep_queue: queue.Queue[bytes] = queue.Queue()
-        self.running = True
-        self.thread = threading.Thread(target=self._run)
-        self.thread.start()
+class SoundNotifier:
+    def setup_audio(self):
+        audio = PyAudio()
+        stream = audio.open(
+            format=audio.get_format_from_width(4),
+            channels=1,
+            rate=44100,
+            output=True
+        )
+        return audio, stream
 
-    def _run(self) -> None:
-        while self.running or not self.beep_queue.empty():
+    def __init__(self):
+        self.audio, self.stream = self.setup_audio()
+        self.sound_queue = queue.Queue()
+        self.active = True
+        self.worker = threading.Thread(target=self.process_queue)
+        self.worker.start()
+
+    def process_queue(self):
+        while self.active or not self.sound_queue.empty():
             try:
-                beep: bytes = self.beep_queue.get(timeout=0.1)
-                self.stream.write(beep)
+                sound = self.sound_queue.get(timeout=0.1)
+                self.stream.write(sound)
             except queue.Empty:
                 continue
 
-    def beep(self, freq: float = 880, duration: float = 0.2) -> None:
-        self.beep_queue.put(generate_beep(freq=freq, duration=duration))
+    def notify(self):
+        self.sound_queue.put(generate_sound_wave())
 
-    def triple_beep(self) -> None:
-        for _ in range(3):
-            self.beep()
-            time.sleep(1.0)
-
-    def startup_test(self) -> None:
-        print("testing 3-beep startup signal...")
-        self.triple_beep()
-
-    def stop(self) -> None:
-        self.running = False
-        self.thread.join()
+    def shutdown(self):
+        self.active = False
+        self.worker.join()
         self.stream.stop_stream()
         self.stream.close()
-        self.p.terminate()
+        self.audio.terminate()
 
-file_path = Path(r'c:\atari-monk\code\apps-data-store\stuff_done_log.yaml')
+def get_current_time():
+    return datetime.datetime.now().strftime('%H:%M')
 
-def load_data() -> Dict[str, Any]:
+def get_current_date():
+    return datetime.datetime.now().strftime('%Y-%m-%d')
+
+def load_log_data(file_path):
     try:
-        with open(file_path, 'r') as f:
-            return yaml.safe_load(f) or {}
+        with open(file_path, 'r') as file:
+            return yaml.safe_load(file) or {}
     except FileNotFoundError:
         return {}
 
-def save_data(data: Dict[str, Any]) -> None:
-    with open(file_path, 'w') as f:
-        yaml.dump(data, f, sort_keys=False, default_flow_style=False)
+def save_log_data(file_path, data):
+    with open(file_path, 'w') as file:
+        yaml.dump(data, file, sort_keys=False, default_flow_style=False)
 
-def get_current_date() -> str:
-    return datetime.datetime.now().strftime('%Y-%m-%d')
+def create_task_record(description):
+    return {
+        'start': get_current_time(),
+        'description': description[:200],
+        'notes': [],
+        'end': None
+    }
 
-def get_current_time() -> str:
-    return datetime.datetime.now().strftime('%H:%M')
+def add_notes_to_task(task_record):
+    while True:
+        note = input("Add note (or 'done' to finish): ").strip()
+        if note.lower() == 'done':
+            break
+        task_record['notes'].append({
+            'time': get_current_time(),
+            'content': note[:200]
+        })
 
-def add_task(data: Dict[str, Any], date: str, start_time: str, end_time: str, task: str) -> None:
+def calculate_duration(start, end):
+    try:
+        start_time = datetime.datetime.strptime(start, '%H:%M')
+        end_time = datetime.datetime.strptime(end, '%H:%M')
+        duration = end_time - start_time
+        total_seconds = duration.total_seconds()
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        return f"{hours:02d}:{minutes:02d}"
+    except:
+        return "00:00"
+
+def complete_task_record(task_record):
+    task_record['end'] = get_current_time()
+    duration = calculate_duration(task_record['start'], task_record['end'])
+    print(f"Task duration: {duration}")
+    task_record['duration'] = duration
+
+def get_task_description(task):
+    return task.get('description', task.get('task', 'No description'))
+
+def get_task_notes(task):
+    return task.get('notes', task.get('changes', []))
+
+def show_full_log(data):
+    for date, tasks in data.items():
+        print(f"\n{date}")
+        for task in tasks:
+            print(f"  {get_task_description(task)}")
+            print(f"  {task.get('start', '')} - {task.get('end', '')} ({task.get('duration', '00:00')})")
+            for note in get_task_notes(task):
+                print(f"    {note.get('time', '')}: {note.get('content', note.get('note', ''))}")
+
+def show_daily_log(data, date):
     if date not in data:
-        data[date] = []
-    data[date].append({
-        'start': start_time,
-        'task': task,
-        'end': end_time
-    })
+        print("No tasks for this date.")
+        return
+    
+    print(f"\n{date}")
+    for task in data[date]:
+        print(f"  {get_task_description(task)}")
+        print(f"  {task.get('start', '')} - {task.get('end', '')} ({task.get('duration', '00:00')})")
+        for note in get_task_notes(task):
+            print(f"    {note.get('time', '')}: {note.get('content', note.get('note', ''))}")
 
-def task_loop(beeper: Beeper) -> None:
-    data = load_data()
+def show_descriptions_only(data):
+    for date, tasks in data.items():
+        print(f"\n{date}")
+        for task in tasks:
+            print(f"  {get_task_description(task)}")
+
+def handle_new_task(sound_notifier):
+    log_data = load_log_data(LOG_FILE)
     current_date = get_current_date()
 
-    while True:
-        print("\n--- new task ---")
-        task: str = input("enter task name (max 200 chars): ").lower()[:200]
-        print("press enter to start task...")
-        input()
+    description = input("Enter task description: ").strip()
+    task_record = create_task_record(description)
 
-        start_time = get_current_time()
-        beeper.beep()
-        print("task started. press enter to end...")
+    print("Task started. Add notes as needed...")
+    add_notes_to_task(task_record)
 
-        task_start = time.time()
-        last_beep = task_start
+    complete_task_record(task_record)
+    log_data.setdefault(current_date, []).append(task_record)
+    save_log_data(LOG_FILE, log_data)
+    sound_notifier.notify()
 
-        stop_event = threading.Event()
+def display_main_menu():
+    print("\nTask Tracker:")
+    print("1. Start new task")
+    print("2. View complete log")
+    print("3. View today's log")
+    print("4. View descriptions only")
+    print("5. Exit")
+    return input("Select: ").strip()
 
-        def wait_for_enter() -> None:
-            input()
-            stop_event.set()
+def handle_menu_choice(choice, sound_notifier):
+    if choice == '1':
+        handle_new_task(sound_notifier)
+    elif choice == '2':
+        show_full_log(load_log_data(LOG_FILE))
+    elif choice == '3':
+        default_date = get_current_date()
+        date = input(f"Date [{default_date}]: ").strip() or default_date
+        show_daily_log(load_log_data(LOG_FILE), date)
+    elif choice == '4':
+        show_descriptions_only(load_log_data(LOG_FILE))
+    elif choice == '5':
+        return False
+    else:
+        print("Invalid selection.")
+    return True
 
-        input_thread = threading.Thread(target=wait_for_enter)
-        input_thread.start()
+def initialize_system():
+    notifier = SoundNotifier()
+    notifier.notify()
+    return notifier
 
-        while not stop_event.is_set():
-            current_time = time.time()
-            if current_time - last_beep >= 900:
-                beeper.triple_beep()
-                last_beep = current_time
-            time.sleep(0.1)
-
-        end_time = get_current_time()
-        beeper.beep()
-
-        add_task(data, current_date, start_time, end_time, task)
-        save_data(data)
-
-        while True:
-            choice = input("add another task? (y/n): ").strip().lower()
-            if choice in ['y', 'n']:
-                break
-        if choice == 'n':
-            break
-
-def main() -> None:
-    beeper = Beeper()
-    beeper.startup_test()
+def run_application():
+    sound_notifier = initialize_system()
     try:
-        task_loop(beeper)
+        while True:
+            choice = display_main_menu()
+            if not handle_menu_choice(choice, sound_notifier):
+                break
     except KeyboardInterrupt:
-        print("\nscript interrupted. data saved.")
+        print("\nApplication interrupted.")
     finally:
-        beeper.stop()
+        sound_notifier.shutdown()
+
+LOG_FILE = Path(r'c:\atari-monk\code\apps-data-store\stuff_done_log.yaml')
+
+def main():
+    try:
+        run_application()
+    except ImportError as e:
+        print(f"Missing required library: {e.name}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    try:
-        main()
-    except ImportError as e:
-        print(f"missing required library: {e.name}. please install it first.")
+    main()
