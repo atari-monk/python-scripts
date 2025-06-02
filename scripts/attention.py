@@ -5,23 +5,49 @@ from pathlib import Path
 import struct
 import time
 import pyaudio
+import threading
+from queue import Queue
+
+class Beeper:
+    def __init__(self):
+        self.sample_rate = 44100
+        self.p = pyaudio.PyAudio()
+        self.queue = Queue()
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
+        
+    def _generate_tone(self, frequency, duration, amplitude=0.5):
+        num_samples = int(self.sample_rate * duration)
+        samples = (amplitude * math.sin(2 * math.pi * frequency * (i / self.sample_rate)) for i in range(num_samples))
+        return b''.join(struct.pack('f', s) for s in samples)
+    
+    def _run(self):
+        stream = None
+        try:
+            stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.sample_rate, output=True)
+            while True:
+                frequency, duration, repetitions = self.queue.get()
+                samples = self._generate_tone(frequency, duration)
+                for _ in range(repetitions):
+                    if stream.is_active():
+                        stream.write(samples)
+                        time.sleep(0.1)
+        finally:
+            if stream:
+                stream.stop_stream()
+                stream.close()
+    
+    def play(self, frequency, duration, repetitions=1):
+        self.queue.put((frequency, duration, repetitions))
+    
+    def __del__(self):
+        self.p.terminate()
+
+# Create a global beeper instance
+beeper = Beeper()
 
 def play_repeated_tone(frequency, duration, repetitions):
-    sample_rate = 44100
-    amplitude = 0.5
-    num_samples = int(sample_rate * duration)
-    p = pyaudio.PyAudio()
-    stream = p.open(format=pyaudio.paFloat32, channels=1, rate=sample_rate, output=True)
-
-    for _ in range(repetitions):
-        samples = (amplitude * math.sin(2 * math.pi * frequency * (i / sample_rate)) for i in range(num_samples))
-        samples = b''.join(struct.pack('f', s) for s in samples)
-        stream.write(samples)
-        time.sleep(0.1)
-
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
+    beeper.play(frequency, duration, repetitions)
 
 def save_focus_state_to_yaml(log_file_path, message):
     timestamp = time.strftime('%Y-%m-%d %H:%M')
@@ -97,7 +123,6 @@ def display_focus_logs_for_date(log_file_path, date=None):
 
     if not found_entries:
         print("No entries found for this date.")
-
 
 def prompt_focus_state_and_log(log_file_path):
     print("\n🔔 Focus Check-In Menu")
