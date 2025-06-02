@@ -9,8 +9,10 @@ setup(
         "console_scripts": [
             # scripts
             "attention=scripts.attention:main",
-            "stuff_done=scripts.stuff_done:main",
+            "interval_beeper=scripts.interval_beeper:main",
             "little_star=scripts.little_star:main",
+            "pomodoro_timer=scripts.pomodoro_timer:main",
+            "stuff_done=scripts.stuff_done:main",
             # tools
             "copy_paste=tools.copy_paste.cli:main",
             "dev_blog_index=tools.dev_blog_index.cli:main",

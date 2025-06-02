@@ -1,53 +1,6 @@
 from collections import defaultdict
-from datetime import datetime
-import math
-from pathlib import Path
-import struct
 import time
-import pyaudio
-import threading
-from queue import Queue
-
-class Beeper:
-    def __init__(self):
-        self.sample_rate = 44100
-        self.p = pyaudio.PyAudio()
-        self.queue = Queue()
-        self.thread = threading.Thread(target=self._run, daemon=True)
-        self.thread.start()
-        
-    def _generate_tone(self, frequency, duration, amplitude=0.5):
-        num_samples = int(self.sample_rate * duration)
-        samples = (amplitude * math.sin(2 * math.pi * frequency * (i / self.sample_rate)) for i in range(num_samples))
-        return b''.join(struct.pack('f', s) for s in samples)
-    
-    def _run(self):
-        stream = None
-        try:
-            stream = self.p.open(format=pyaudio.paFloat32, channels=1, rate=self.sample_rate, output=True)
-            while True:
-                frequency, duration, repetitions = self.queue.get()
-                samples = self._generate_tone(frequency, duration)
-                for _ in range(repetitions):
-                    if stream.is_active():
-                        stream.write(samples)
-                        time.sleep(0.1)
-        finally:
-            if stream:
-                stream.stop_stream()
-                stream.close()
-    
-    def play(self, frequency, duration, repetitions=1):
-        self.queue.put((frequency, duration, repetitions))
-    
-    def __del__(self):
-        self.p.terminate()
-
-# Create a global beeper instance
-beeper = Beeper()
-
-def play_repeated_tone(frequency, duration, repetitions):
-    beeper.play(frequency, duration, repetitions)
+from pathlib import Path
 
 def save_focus_state_to_yaml(log_file_path, message):
     timestamp = time.strftime('%Y-%m-%d %H:%M')
@@ -159,7 +112,6 @@ def prompt_focus_state_and_log(log_file_path):
         note = input("Add optional note (or press Enter): ").strip()
         message = focus_states[choice] + (f" - {note.lower()}" if note else "")
         save_focus_state_to_yaml(log_file_path, message)
-        play_repeated_tone(880.0, 0.3, 1)
         print(f"\n✅ Logged: {message}\n")
         return message
 
@@ -169,28 +121,15 @@ def prompt_focus_state_and_log(log_file_path):
 
 def run_focus_checkin_loop(log_file_path):
     print("\n🎯 Continuous Focus Check-In (Press Ctrl+C to quit)")
-    last_5min_reminder = time.time()
-    last_15min_reminder = time.time()
 
     try:
         while True:
-            current_time = time.time()
-
-            if current_time - last_5min_reminder >= 300:
-                play_repeated_tone(600.0, 0.2, 2)
-                last_5min_reminder = current_time
-
-            if current_time - last_15min_reminder >= 900:
-                play_repeated_tone(440.0, 0.2, 3)
-                last_15min_reminder = current_time
-
             prompt_focus_state_and_log(log_file_path)
 
     except KeyboardInterrupt:
         print("\n⏹️ Check-ins stopped.")
 
 def main():
-    play_repeated_tone(880.0, 0.3, 1)
     run_focus_checkin_loop(Path(r"C:\atari-monk\code\apps-data-store\attention_log.yaml"))
 
 if __name__ == "__main__":

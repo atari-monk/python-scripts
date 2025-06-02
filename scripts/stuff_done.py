@@ -1,52 +1,7 @@
 from pathlib import Path
 import yaml
 import datetime
-from pyaudio import PyAudio
-import numpy as np
-import threading
-import queue
 import sys
-
-def generate_sound_wave(frequency=880, duration=0.08):
-    sample_rate = 44100
-    samples = np.sin(2 * np.pi * np.arange(int(sample_rate * duration)) * frequency / sample_rate)
-    return samples.astype(np.float32).tobytes()
-
-class SoundNotifier:
-    def setup_audio(self):
-        audio = PyAudio()
-        stream = audio.open(
-            format=audio.get_format_from_width(4),
-            channels=1,
-            rate=44100,
-            output=True
-        )
-        return audio, stream
-
-    def __init__(self):
-        self.audio, self.stream = self.setup_audio()
-        self.sound_queue = queue.Queue()
-        self.active = True
-        self.worker = threading.Thread(target=self.process_queue)
-        self.worker.start()
-
-    def process_queue(self):
-        while self.active or not self.sound_queue.empty():
-            try:
-                sound = self.sound_queue.get(timeout=0.1)
-                self.stream.write(sound)
-            except queue.Empty:
-                continue
-
-    def notify(self):
-        self.sound_queue.put(generate_sound_wave())
-
-    def shutdown(self):
-        self.active = False
-        self.worker.join()
-        self.stream.stop_stream()
-        self.stream.close()
-        self.audio.terminate()
 
 def get_current_time():
     return datetime.datetime.now().strftime('%H:%M')
@@ -67,21 +22,26 @@ def save_log_data(file_path, data):
 
 def create_task_record(description):
     return {
-        'start': get_current_time(),
         'description': description[:200],
-        'notes': [],
-        'end': None
+        'start': get_current_time(),
+        'end': None,
+        'duration': None,
+        'notes': []
     }
 
-def add_notes_to_task(task_record):
+def add_notes_to_task(task_record, log_data, current_date, task_index):
     while True:
         note = input("Add note (or 'done' to finish): ").strip()
         if note.lower() == 'done':
             break
-        task_record['notes'].append({
+        new_note = {
             'time': get_current_time(),
             'content': note[:200]
-        })
+        }
+        task_record['notes'].append(new_note)
+        # Save after each note
+        log_data[current_date][task_index] = task_record
+        save_log_data(LOG_FILE, log_data)
 
 def calculate_duration(start, end):
     try:
@@ -95,26 +55,29 @@ def calculate_duration(start, end):
     except:
         return "00:00"
 
-def complete_task_record(task_record):
+def complete_task_record(task_record, log_data, current_date, task_index):
     task_record['end'] = get_current_time()
     duration = calculate_duration(task_record['start'], task_record['end'])
     print(f"Task duration: {duration}")
     task_record['duration'] = duration
+    # Save completion
+    log_data[current_date][task_index] = task_record
+    save_log_data(LOG_FILE, log_data)
 
 def get_task_description(task):
-    return task.get('description', task.get('task', 'No description'))
+    return task.get('description', 'No description')
 
 def get_task_notes(task):
-    return task.get('notes', task.get('changes', []))
+    return task.get('notes', [])
 
 def show_full_log(data):
-    for date, tasks in data.items():
+    for date, tasks in sorted(data.items(), reverse=True):
         print(f"\n{date}")
         for task in tasks:
             print(f"  {get_task_description(task)}")
             print(f"  {task.get('start', '')} - {task.get('end', '')} ({task.get('duration', '00:00')})")
             for note in get_task_notes(task):
-                print(f"    {note.get('time', '')}: {note.get('content', note.get('note', ''))}")
+                print(f"    {note.get('time', '')}: {note.get('content', '')}")
 
 def show_daily_log(data, date):
     if date not in data:
@@ -126,41 +89,45 @@ def show_daily_log(data, date):
         print(f"  {get_task_description(task)}")
         print(f"  {task.get('start', '')} - {task.get('end', '')} ({task.get('duration', '00:00')})")
         for note in get_task_notes(task):
-            print(f"    {note.get('time', '')}: {note.get('content', note.get('note', ''))}")
+            print(f"    {note.get('time', '')}: {note.get('content', '')}")
 
 def show_descriptions_only(data):
-    for date, tasks in data.items():
+    for date, tasks in sorted(data.items(), reverse=True):
         print(f"\n{date}")
         for task in tasks:
             print(f"  {get_task_description(task)}")
 
-def handle_new_task(sound_notifier):
+def handle_new_task():
     log_data = load_log_data(LOG_FILE)
     current_date = get_current_date()
 
     description = input("Enter task description: ").strip()
     task_record = create_task_record(description)
+    
+    # Initialize task in log
+    if current_date not in log_data:
+        log_data[current_date] = []
+    task_index = len(log_data[current_date])
+    log_data[current_date].append(task_record)
+    save_log_data(LOG_FILE, log_data)
 
     print("Task started. Add notes as needed...")
-    add_notes_to_task(task_record)
+    add_notes_to_task(task_record, log_data, current_date, task_index)
 
-    complete_task_record(task_record)
-    log_data.setdefault(current_date, []).append(task_record)
-    save_log_data(LOG_FILE, log_data)
-    sound_notifier.notify()
+    complete_task_record(task_record, log_data, current_date, task_index)
 
 def display_main_menu():
     print("\nTask Tracker:")
     print("1. Start new task")
     print("2. View complete log")
-    print("3. View today's log")
+    print("3. View specific date log")
     print("4. View descriptions only")
     print("5. Exit")
     return input("Select: ").strip()
 
-def handle_menu_choice(choice, sound_notifier):
+def handle_menu_choice(choice):
     if choice == '1':
-        handle_new_task(sound_notifier)
+        handle_new_task()
     elif choice == '2':
         show_full_log(load_log_data(LOG_FILE))
     elif choice == '3':
@@ -175,22 +142,14 @@ def handle_menu_choice(choice, sound_notifier):
         print("Invalid selection.")
     return True
 
-def initialize_system():
-    notifier = SoundNotifier()
-    notifier.notify()
-    return notifier
-
 def run_application():
-    sound_notifier = initialize_system()
     try:
         while True:
             choice = display_main_menu()
-            if not handle_menu_choice(choice, sound_notifier):
+            if not handle_menu_choice(choice):
                 break
     except KeyboardInterrupt:
         print("\nApplication interrupted.")
-    finally:
-        sound_notifier.shutdown()
 
 LOG_FILE = Path(r'c:\atari-monk\code\apps-data-store\stuff_done_log.yaml')
 
