@@ -3,7 +3,8 @@ from pathlib import Path
 from dataclasses import asdict
 import tomli_w
 import tomllib
-from tool.tracker.tracking_cli import TRACKING_FILE, TrackingBreak, TrackingData, TrackingNote, TrackingSession
+from tool.tracker.config import TRACKING_FILE
+from tool.tracker.model import TrackingBreak, TrackingData, TrackingNote, TrackingSession
 
 class TrackingStorage:
     def __init__(self, file_path: str = TRACKING_FILE):

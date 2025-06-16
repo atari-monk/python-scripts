@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
-from tool.tracker.tracking_manager import TrackingManager
-from tool.tracker.tracking_storage import TrackingStorage
+from tool.tracker.service import TrackingService
+from tool.tracker.storage import TrackingStorage
 
 def main():
     parser = argparse.ArgumentParser(description="Time tracking utility")
@@ -39,7 +39,7 @@ def main():
     summary_parser.add_argument("--today", action="store_true", help="Today only")
     
     args = parser.parse_args()
-    tracker = TrackingManager(TrackingStorage())
+    tracker = TrackingService(TrackingStorage())
     
     try:
         if args.command == "start":

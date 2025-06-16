@@ -1,9 +1,10 @@
 from typing import Optional
 from datetime import datetime, timedelta
-from tool.tracker.tracking_cli import MAX_NOTE_LENGTH, TrackingBreak, TrackingNote, TrackingSession
-from tool.tracker.tracking_storage import TrackingStorage
+from tool.tracker.config import MAX_NOTE_LENGTH
+from tool.tracker.model import TrackingBreak, TrackingNote, TrackingSession
+from tool.tracker.storage import TrackingStorage
 
-class TrackingManager:
+class TrackingService:
     def __init__(self, storage: TrackingStorage):
         self.storage = storage
         self.data = storage.load()

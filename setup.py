@@ -9,14 +9,13 @@ setup(
         "console_scripts": [
             # script
             "case_converter=script.case_converter:main",
-            #
             "attention=script.attention:main",
             "interval_beeper=script.interval_beeper:main",
             "little_star=script.little_star:main",
             "pomodoro_timer=script.pomodoro_timer:main",
             "stuff_done=script.stuff_done:main",
             # tools
-            "tracker=tool.tracking_cli:main",
+            "tracker=tool.tracker.cli:main",
             "copy_paste=tool.copy_paste.cli:main",
             "dev_blog_index=tool.dev_blog_index.cli:main",
             "dev_blog_post=tool.dev_blog_post.cli:main",
