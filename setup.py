@@ -7,21 +7,23 @@ setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
-            # scripts
-            "tracker=scripts.tracker:main",
-            "attention=scripts.attention:main",
-            "interval_beeper=scripts.interval_beeper:main",
-            "little_star=scripts.little_star:main",
-            "pomodoro_timer=scripts.pomodoro_timer:main",
-            "stuff_done=scripts.stuff_done:main",
+            # script
+            "case_converter=script.case_converter:main",
+            #
+            "attention=script.attention:main",
+            "interval_beeper=script.interval_beeper:main",
+            "little_star=script.little_star:main",
+            "pomodoro_timer=script.pomodoro_timer:main",
+            "stuff_done=script.stuff_done:main",
             # tools
-            "copy_paste=tools.copy_paste.cli:main",
-            "dev_blog_index=tools.dev_blog_index.cli:main",
-            "dev_blog_post=tools.dev_blog_post.cli:main",
-            "dir_tree=tools.dir_tree.cli:main",
-            "folder_indexer=tools.folder_indexer.cli:main",
-            "form_fill=tools.form_fill.cli:main",
-            "script_info=tools.script_info.cli:main",
+            "tracker=tool.tracking_cli:main",
+            "copy_paste=tool.copy_paste.cli:main",
+            "dev_blog_index=tool.dev_blog_index.cli:main",
+            "dev_blog_post=tool.dev_blog_post.cli:main",
+            "dir_tree=tool.dir_tree.cli:main",
+            "folder_indexer=tool.folder_indexer.cli:main",
+            "form_fill=tool.form_fill.cli:main",
+            "script_info=tool.script_info.cli:main",
         ],
     },
     python_requires=">=3.7",
