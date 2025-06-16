@@ -8,6 +8,7 @@ setup(
     entry_points={
         "console_scripts": [
             # scripts
+            "tracker=scripts.tracker:main",
             "attention=scripts.attention:main",
             "interval_beeper=scripts.interval_beeper:main",
             "little_star=scripts.little_star:main",
