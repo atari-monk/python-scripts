@@ -9,6 +9,7 @@ setup(
         "console_scripts": [
             # script
             "case_converter=script.case_converter:main",
+            "merger=script.merger:main",
             "attention=script.attention:main",
             "interval_beeper=script.interval_beeper:main",
             "little_star=script.little_star:main",

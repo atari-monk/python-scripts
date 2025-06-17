@@ -1,7 +1,7 @@
 import os
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
-from core.copy_paste_config import CopyPasteConfig
+from tool.copy_paste.config import CopyPasteConfig
 from tool.copy_paste.service import CopyPasteService
 
 class TestCopyPasteService:
