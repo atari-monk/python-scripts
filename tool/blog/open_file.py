@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-from tool.blog.core.helper import select_target_interactive
+from tool.blog.core.cli import select_target_interactive
 
 class OpenFile(cli.Application):
     """Open a markdown file from the target repository"""

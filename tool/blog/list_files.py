@@ -2,7 +2,7 @@ from plumbum import cli
 from tool.blog.core.config_crud import ConfigCRUD
 import os
 
-from tool.blog.core.helper import select_target_interactive
+from tool.blog.core.cli import select_target_interactive
 
 class ListFiles(cli.Application):
     

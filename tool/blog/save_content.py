@@ -4,7 +4,7 @@ from pathlib import Path
 import pyperclip
 import os
 
-from tool.blog.core.helper import select_target_interactive
+from tool.blog.core.cli import select_target_interactive
 
 class SaveContent(cli.Application):
     """Save clipboard content to a markdown file in the target repository"""
