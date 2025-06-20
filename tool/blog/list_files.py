@@ -1,8 +1,7 @@
 from plumbum import cli
 from tool.blog.core.config_crud import ConfigCRUD
-import os
-
 from tool.blog.core.cli import select_target_interactive
+from tool.blog.core.file_sys import list_markdown_files
 
 class ListFiles(cli.Application):
     
@@ -20,33 +19,11 @@ class ListFiles(cli.Application):
         config = ConfigCRUD.load()
         
         try:
-            # Changed: Using the new core method instead of local _select_target
             target_path = select_target_interactive(config, target_name)
         except ValueError:
             return 1
         
-        # Rest of the file remains the same...
-        files = []
-        if self.category:
-            search_path = target_path / self.category
-            if not search_path.exists():
-                print(f"Category '{self.category}' not found")
-                return 1
-                
-            for item in search_path.iterdir():
-                if item.is_file() and item.suffix == '.md':
-                    files.append((self.category, item.name))
-        else:
-            for root, _, filenames in os.walk(target_path):
-                rel_path = os.path.relpath(root, target_path)
-                if rel_path == '.':
-                    category = ''
-                else:
-                    category = rel_path.replace("\\", "/")
-                
-                for filename in filenames:
-                    if filename.endswith('.md'):
-                        files.append((category, filename))
+        files = list_markdown_files(target_path, self.category)
         
         if self.search_term:
             files = [

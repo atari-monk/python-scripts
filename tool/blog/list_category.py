@@ -3,6 +3,7 @@ from tool.blog.core.config_crud import ConfigCRUD
 import os
 
 from tool.blog.core.cli import select_target_interactive
+from tool.blog.core.file_sys import build_category_tree, print_category_tree
 
 class ListCategory(cli.Application):
     
@@ -27,7 +28,6 @@ class ListCategory(cli.Application):
                 categories.append(rel_path.replace("\\", "/"))
         categories = sorted(set(categories))
         
-        # Print categories
         if not categories:
             print("No categories found")
             return
@@ -38,30 +38,6 @@ class ListCategory(cli.Application):
                 print(f"No categories matching '{self.search_term}'")
                 return
         
-        # Group by top-level categories
-        tree = {}
-        for category in categories:
-            parts = category.split("/")
-            node = tree
-            for part in parts[:-1]:
-                if part not in node:
-                    node[part] = {}
-                elif node[part] is None:  # Convert leaf node to branch if needed
-                    node[part] = {}
-                node = node[part]
-            node[parts[-1]] = None
-        
-        def print_tree(node, prefix=""):
-            keys = sorted(node.keys())
-            for i, key in enumerate(keys):
-                if i == len(keys) - 1:
-                    new_prefix = prefix + "    "
-                    print(prefix + "└── " + key)
-                else:
-                    new_prefix = prefix + "│   "
-                    print(prefix + "├── " + key)
-                if node[key] is not None:
-                    print_tree(node[key], new_prefix)
-        
+        tree = build_category_tree(categories)
         print("Available categories:")
-        print_tree(tree)
+        print_category_tree(tree)

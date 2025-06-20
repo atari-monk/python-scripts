@@ -31,3 +31,23 @@ def select_target_interactive(config: Config, target_name: Optional[str] = None)
             except ValueError:
                 pass
             print("Invalid selection, please try again")
+
+def select_target_name_interactive(config: Config, prompt: str = "Select target") -> str:
+    if not config.targets:
+        raise ValueError("No targets configured")
+        
+    print(f"\n{prompt}:")
+    for i, (name, path) in enumerate(config.targets.items(), 1):
+        print(f"{i}. {name}: {path if path else 'Not configured'}")
+    
+    while True:
+        choice = input("\nEnter target number (1-{}): ".format(
+            len(config.targets))).strip()
+        
+        try:
+            choice_num = int(choice)
+            if 1 <= choice_num <= len(config.targets):
+                return list(config.targets.keys())[choice_num-1]
+        except ValueError:
+            pass
+        print("Invalid selection, please try again")
