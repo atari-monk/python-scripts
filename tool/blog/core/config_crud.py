@@ -17,14 +17,7 @@ class ConfigCRUD:
                 with open(config_path, "r") as f:
                     data = json.load(f)
                     if "targets" in data:
-                        return Config(
-                            targets=data["targets"],
-                            last_used_target=data.get("last_used_target")
-                        )
-                    elif "repos" in data:
-                        return Config(targets=data["repos"])
-                    else:
-                        return Config(targets={"blog": data.get("repo_path", "")})
+                        return Config(targets=data["targets"])
         except (json.JSONDecodeError, AttributeError):
             print("Warning: Config file corrupted, creating new one")
         return Config()
