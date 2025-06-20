@@ -3,6 +3,6 @@ from typing import Dict, Optional
 
 
 @dataclass
-class Blog:
+class Config:
     targets: Dict[str, str] = field(default_factory=lambda: {})
     last_used_target: Optional[str] = None

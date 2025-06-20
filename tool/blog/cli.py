@@ -11,8 +11,10 @@ class BlogCLI(cli.Application):
         
         
 def main():
-    from tool.blog.blog_add_target import BlogAddTarget
-    BlogCLI.subcommand("add")(BlogAddTarget)
+    from tool.blog.add_target import AddTarget
+    from tool.blog.print_config import PrintConfig
+    BlogCLI.subcommand("add-target")(AddTarget)
+    BlogCLI.subcommand("print-config")(PrintConfig)
     BlogCLI.run()
 
 

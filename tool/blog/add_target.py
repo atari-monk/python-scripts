@@ -1,11 +1,11 @@
 from plumbum import cli
-from tool.blog.blog_crud import BlogCRUD
+from tool.blog.core.config_crud import ConfigCRUD
 
 
-class BlogAddTarget(cli.Application):
+class AddTarget(cli.Application):
     
     def main(self, target_name: str = None, target_path: str = None):
-        config = BlogCRUD.load()
+        config = ConfigCRUD.load()
         
         if target_name is None:
             while True:
@@ -27,7 +27,7 @@ class BlogAddTarget(cli.Application):
                 
         config.targets[target_name] = target_path
         config.last_used_target = target_name
-        BlogCRUD.save(config)
+        ConfigCRUD.save(config)
         
         print(f"Added target '{target_name}' with path '{target_path}'")
         return 0

@@ -16,7 +16,7 @@ setup(
             "pomodoro_timer=script.pomodoro_timer:main",
             "stuff_done=script.stuff_done:main",
             # tools
-            "blog=tool.blog.blog_cli:main",
+            "blog=tool.blog.cli:main",
             "tracker=tool.tracker.cli:main",
             "copy_paste=tool.copy_paste.cli:main",
             "dev_blog_index=tool.dev_blog_index.cli:main",
