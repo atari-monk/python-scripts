@@ -1,0 +1,82 @@
+Merged Files
+=============
+
+__init__.py
+--------------------------------------------------------------------------------
+
+
+blog.py
+--------------------------------------------------------------------------------
+from dataclasses import dataclass, field
+from typing import Dict, Optional
+
+
+@dataclass
+class Blog:
+    targets: Dict[str, str] = field(default_factory=lambda: {})
+    last_used_target: Optional[str] = None
+
+blog_cli.py
+--------------------------------------------------------------------------------
+from plumbum import cli
+
+
+class BlogCLI(cli.Application):
+    
+    def main(self):
+        if not self.nested_command:
+            print("No command specified")
+            self.help()
+            return 1
+        
+        
+def main():
+    BlogCLI.run()
+
+
+if __name__ == "__main__":
+    main()
+
+blog_crud.py
+--------------------------------------------------------------------------------
+from dataclasses import asdict
+from pathlib import Path
+import json
+from tool.blog.blog import Blog
+
+
+class BlogCRUD:
+    @staticmethod
+    def get_config_path() -> Path:
+        return Path(r"C:\atari-monk\code\apps-data-store\blog_config.json")
+
+    @classmethod
+    def load(cls) -> Blog:
+        config_path = cls.get_config_path()
+        try:
+            if config_path.exists() and config_path.stat().st_size > 0:
+                with open(config_path, "r") as f:
+                    data = json.load(f)
+                    if "targets" in data:
+                        return Blog(
+                            targets=data["targets"],
+                            last_used_target=data.get("last_used_target")
+                        )
+                    elif "repos" in data:
+                        return Blog(targets=data["repos"])
+                    else:
+                        return Blog(targets={"blog": data.get("repo_path", "")})
+        except (json.JSONDecodeError, AttributeError):
+            print("Warning: Config file corrupted, creating new one")
+        return Blog()
+
+    @classmethod
+    def save(cls, config: Blog) -> None:
+        with open(cls.get_config_path(), "w") as f:
+            json.dump(asdict(config), f, indent=2)
+
+
+
+
+
+Merged 4 files

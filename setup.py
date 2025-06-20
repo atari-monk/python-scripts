@@ -4,11 +4,10 @@ setup(
     name="python-scripts",
     version="0.1",
     packages=find_packages(),
-    install_requires=[],
+    install_requires=["plumbum"],
     entry_points={
         "console_scripts": [
             # script
-            "blog=script.blog:main",
             "case_converter=script.case_converter:main",
             "merger=script.merger:main",
             "attention=script.attention:main",
@@ -17,6 +16,7 @@ setup(
             "pomodoro_timer=script.pomodoro_timer:main",
             "stuff_done=script.stuff_done:main",
             # tools
+            "blog=tool.blog.blog_cli:main",
             "tracker=tool.tracker.cli:main",
             "copy_paste=tool.copy_paste.cli:main",
             "dev_blog_index=tool.dev_blog_index.cli:main",
