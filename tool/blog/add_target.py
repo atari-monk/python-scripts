@@ -1,5 +1,6 @@
 from plumbum import cli
 from tool.blog.core.config_crud import ConfigCRUD
+from tool.blog.core.cli import prompt_for_target_details
 
 
 class AddTarget(cli.Application):
@@ -7,24 +8,13 @@ class AddTarget(cli.Application):
     def main(self, target_name: str = None, target_path: str = None):
         config = ConfigCRUD.load()
         
-        if target_name is None:
-            while True:
-                target_name = input("Enter target name: ").strip()
-                if target_name:
-                    break
-                print("Error: Target name cannot be empty")
-                
-        if target_name in config.targets:
-            print(f"Target '{target_name}' already exists")
-            return 1
+        if target_name and target_path:
+            if target_name in config.targets:
+                print(f"Target '{target_name}' already exists")
+                return 1
+        else:
+            target_name, target_path = prompt_for_target_details(config)
             
-        if target_path is None:
-            while True:
-                target_path = input(f"Enter path for target '{target_name}': ").strip()
-                if target_path:
-                    break
-                print("Error: Path cannot be empty")
-                
         config.targets[target_name] = target_path
         ConfigCRUD.save(config)
         

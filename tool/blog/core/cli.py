@@ -51,3 +51,24 @@ def select_target_name_interactive(config: Config, prompt: str = "Select target"
         except ValueError:
             pass
         print("Invalid selection, please try again")
+
+def prompt_for_target_details(config: Config, existing_target: str = None) -> tuple[str, str]:
+    if existing_target:
+        target_name = existing_target
+    else:
+        while True:
+            target_name = input("Enter target name: ").strip()
+            if target_name:
+                if target_name in config.targets:
+                    print(f"Target '{target_name}' already exists")
+                    continue
+                break
+            print("Error: Target name cannot be empty")
+    
+    while True:
+        target_path = input(f"Enter path for target '{target_name}': ").strip()
+        if target_path:
+            break
+        print("Error: Path cannot be empty")
+    
+    return target_name, target_path
