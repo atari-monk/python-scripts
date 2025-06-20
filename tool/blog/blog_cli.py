@@ -11,6 +11,8 @@ class BlogCLI(cli.Application):
         
         
 def main():
+    from tool.blog.blog_add_target import BlogAddTarget
+    BlogCLI.subcommand("add")(BlogAddTarget)
     BlogCLI.run()
 
 
