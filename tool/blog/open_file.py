@@ -5,6 +5,8 @@ import os
 import subprocess
 import sys
 
+from tool.blog.core.helper import select_target_interactive
+
 class OpenFile(cli.Application):
     """Open a markdown file from the target repository"""
     
@@ -17,36 +19,6 @@ class OpenFile(cli.Application):
         ['-e', '--editor'],
         help="Specify editor command (default: system default)"
     )
-    
-    def _select_target(self, config, target_name: str = None) -> Path:
-        """Shared target selection logic"""
-        if target_name and target_name in config.targets:
-            path = config.targets[target_name]
-            if not path:
-                print(f"Error: Path not configured for target '{target_name}'")
-                raise ValueError("Invalid target path")
-            return Path(path).resolve()
-        
-        print("\nAvailable targets:")
-        for i, (name, path) in enumerate(config.targets.items(), 1):
-            print(f"{i}. {name}: {path if path else 'Not configured'}")
-        
-        while True:
-            choice = input("\nSelect target (1-{}): ".format(
-                len(config.targets))).strip()
-            
-            try:
-                choice_num = int(choice)
-                if 1 <= choice_num <= len(config.targets):
-                    selected_name = list(config.targets.keys())[choice_num-1]
-                    path = config.targets[selected_name]
-                    if not path:
-                        print(f"Error: Path not configured for target '{selected_name}'")
-                        raise ValueError("Invalid target path")
-                    return Path(path).resolve()
-            except ValueError:
-                pass
-            print("Invalid selection, please try again")
     
     def _find_files(self, target_path: Path, category: str = None) -> list:
         """Find all markdown files in the target"""
@@ -89,7 +61,7 @@ class OpenFile(cli.Application):
         config = ConfigCRUD.load()
         
         try:
-            target_path = self._select_target(config, target_name)
+            target_path = select_target_interactive(config, target_name)
         except ValueError:
             return 1
         

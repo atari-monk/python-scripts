@@ -1,10 +1,10 @@
 from plumbum import cli
 from tool.blog.core.config_crud import ConfigCRUD
-from pathlib import Path
 import os
 
+from tool.blog.core.helper import select_target_interactive
+
 class ListFiles(cli.Application):
-    """List all files in a target repository, optionally filtered by category"""
     
     search_term = cli.SwitchAttr(
         ['-s', '--search'],
@@ -16,45 +16,16 @@ class ListFiles(cli.Application):
         help="Specific category to list files from"
     )
     
-    def _select_target(self, config, target_name: str = None) -> Path:
-        """Shared target selection logic"""
-        if target_name and target_name in config.targets:
-            path = config.targets[target_name]
-            if not path:
-                print(f"Error: Path not configured for target '{target_name}'")
-                raise ValueError("Invalid target path")
-            return Path(path).resolve()
-        
-        print("\nAvailable targets:")
-        for i, (name, path) in enumerate(config.targets.items(), 1):
-            print(f"{i}. {name}: {path if path else 'Not configured'}")
-        
-        while True:
-            choice = input("\nSelect target (1-{}): ".format(
-                len(config.targets))).strip()
-            
-            try:
-                choice_num = int(choice)
-                if 1 <= choice_num <= len(config.targets):
-                    selected_name = list(config.targets.keys())[choice_num-1]
-                    path = config.targets[selected_name]
-                    if not path:
-                        print(f"Error: Path not configured for target '{selected_name}'")
-                        raise ValueError("Invalid target path")
-                    return Path(path).resolve()
-            except ValueError:
-                pass
-            print("Invalid selection, please try again")
-    
     def main(self, target_name: str = None):
         config = ConfigCRUD.load()
         
         try:
-            target_path = self._select_target(config, target_name)
+            # Changed: Using the new core method instead of local _select_target
+            target_path = select_target_interactive(config, target_name)
         except ValueError:
             return 1
         
-        # Collect files
+        # Rest of the file remains the same...
         files = []
         if self.category:
             search_path = target_path / self.category
@@ -77,14 +48,12 @@ class ListFiles(cli.Application):
                     if filename.endswith('.md'):
                         files.append((category, filename))
         
-        # Filter files
         if self.search_term:
             files = [
                 (cat, f) for cat, f in files 
                 if self.search_term.lower() in f.lower()
             ]
         
-        # Sort and display
         files.sort(key=lambda x: (x[0], x[1]))
         
         if not files:

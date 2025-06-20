@@ -1,10 +1,10 @@
 from plumbum import cli
 from tool.blog.core.config_crud import ConfigCRUD
-from pathlib import Path
 import os
 
+from tool.blog.core.helper import select_target_interactive
+
 class ListCategory(cli.Application):
-    """List all categories in the target repository"""
     
     search_term = cli.SwitchAttr(
         ['-s', '--search'],
@@ -14,38 +14,10 @@ class ListCategory(cli.Application):
     def main(self, target_name: str = None):
         config = ConfigCRUD.load()
         
-        # Select target
-        if target_name and target_name in config.targets:
-            target_path = Path(config.targets[target_name])
-            if not target_path:
-                print(f"Error: Path not configured for target '{target_name}'")
-                return 1
-        else:
-            # Interactive target selection
-            if not config.targets:
-                print("No targets configured. Use 'add-target' first.")
-                return 1
-                
-            print("\nAvailable targets:")
-            for i, (name, path) in enumerate(config.targets.items(), 1):
-                print(f"{i}. {name}: {path if path else 'Not configured'}")
-            
-            while True:
-                choice = input("\nSelect target (1-{}): ".format(
-                    len(config.targets))).strip()
-                
-                try:
-                    choice_num = int(choice)
-                    if 1 <= choice_num <= len(config.targets):
-                        selected_name = list(config.targets.keys())[choice_num-1]
-                        target_path = Path(config.targets[selected_name])
-                        if not target_path:
-                            print(f"Error: Path not configured for target '{selected_name}'")
-                            return 1
-                        break
-                except ValueError:
-                    pass
-                print("Invalid selection, please try again")
+        try:
+            target_path = select_target_interactive(config, target_name)
+        except ValueError:
+            return 1
         
         # Get categories
         categories = []

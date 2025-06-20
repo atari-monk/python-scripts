@@ -26,7 +26,6 @@ class AddTarget(cli.Application):
                 print("Error: Path cannot be empty")
                 
         config.targets[target_name] = target_path
-        config.last_used_target = target_name
         ConfigCRUD.save(config)
         
         print(f"Added target '{target_name}' with path '{target_path}'")

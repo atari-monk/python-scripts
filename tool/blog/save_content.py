@@ -4,6 +4,8 @@ from pathlib import Path
 import pyperclip
 import os
 
+from tool.blog.core.helper import select_target_interactive
+
 class SaveContent(cli.Application):
     """Save clipboard content to a markdown file in the target repository"""
     
@@ -21,42 +23,14 @@ class SaveContent(cli.Application):
         if not path.exists():
             path.mkdir(parents=True)
     
-    def _select_target(self, config, target_name: str = None) -> Path:
-        if target_name and target_name in config.targets:
-            path = config.targets[target_name]
-            if not path:
-                path = input(f"Enter path for target '{target_name}': ").strip()
-                config.targets[target_name] = path
-                ConfigCRUD.save(config)
-            return Path(path).resolve()
-        
-        print("\nAvailable targets:")
-        for i, (name, path) in enumerate(config.targets.items(), 1):
-            print(f"{i}. {name}: {path if path else 'Not configured'}")
-        
-        while True:
-            choice = input("\nSelect target (1-{}): ".format(
-                len(config.targets))).strip()
-            
-            try:
-                choice_num = int(choice)
-                if 1 <= choice_num <= len(config.targets):
-                    selected_name = list(config.targets.keys())[choice_num-1]
-                    path = config.targets[selected_name]
-                    if not path:
-                        path = input(f"Enter path for {selected_name}: ").strip()
-                        config.targets[selected_name] = path
-                        ConfigCRUD.save(config)
-                    return Path(path).resolve()
-            except ValueError:
-                pass
-            print("Invalid selection, please try again")
-    
     def main(self, target_name: str = None):
         config = ConfigCRUD.load()
         
         # Select target
-        target_path = self._select_target(config, target_name)
+        try:
+            target_path = select_target_interactive(config, target_name)
+        except ValueError:
+            return 1
         
         # Get category
         if not self.category:
