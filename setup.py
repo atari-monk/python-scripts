@@ -8,6 +8,7 @@ setup(
     entry_points={
         "console_scripts": [
             # script
+            "blog=script.blog:main",
             "case_converter=script.case_converter:main",
             "merger=script.merger:main",
             "attention=script.attention:main",
