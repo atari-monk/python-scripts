@@ -14,10 +14,21 @@ def main():
     from tool.blog.add_target import AddTarget
     from tool.blog.print_config import PrintConfig
     from tool.blog.list_category import ListCategory
+    from tool.blog.save_content import SaveContent
+    from tool.blog.delete_target import DeleteTarget
+    from tool.blog.edit_target import EditTarget
+    from tool.blog.list_files import ListFiles
+    from tool.blog.open_file import OpenFile
 
     BlogCLI.subcommand("add-target")(AddTarget)
     BlogCLI.subcommand("print-config")(PrintConfig)
     BlogCLI.subcommand("list-category")(ListCategory)
+    BlogCLI.subcommand("save")(SaveContent)
+    BlogCLI.subcommand("delete-target")(DeleteTarget)
+    BlogCLI.subcommand("edit-target")(EditTarget)
+    BlogCLI.subcommand("list-files")(ListFiles)
+    BlogCLI.subcommand("open-file")(OpenFile)
+
     BlogCLI.run()
 
 
