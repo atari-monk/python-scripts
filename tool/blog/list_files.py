@@ -1,7 +1,10 @@
 from plumbum import cli
+from pathlib import Path
+import os
 from tool.blog.core.config_crud import ConfigCRUD
 from tool.blog.core.cli import select_target_interactive
 from tool.blog.core.file_sys import list_markdown_files
+
 
 class ListFiles(cli.Application):
     
@@ -15,15 +18,24 @@ class ListFiles(cli.Application):
         help="Specific category to list files from"
     )
     
+    verbose = cli.Flag(
+        ['-v', '--verbose'],
+        help="Enable verbose output for debugging"
+    )
+    
     def main(self, target_name: str = None):
         config = ConfigCRUD.load()
         
         try:
             target_path = select_target_interactive(config, target_name)
-        except ValueError:
+            if self.verbose:
+                print(f"DEBUG: Selected target path: {target_path}")
+        except ValueError as e:
+            if self.verbose:
+                print(f"DEBUG: Error selecting target: {e}")
             return 1
         
-        files = list_markdown_files(target_path, self.category)
+        files = list_markdown_files(Path(target_path), self.category, self.verbose)
         
         if self.search_term:
             files = [
@@ -31,10 +43,15 @@ class ListFiles(cli.Application):
                 if self.search_term.lower() in f.lower()
             ]
         
-        files.sort(key=lambda x: (x[0], x[1]))
-        
         if not files:
             print("No markdown files found")
+            if self.verbose:
+                print("DEBUG: Potential issues:")
+                print(f"- Target path exists: {Path(target_path).exists()}")
+                if self.category:
+                    category_path = Path(target_path) / self.category
+                    print(f"- Category path exists: {category_path.exists()}")
+                print(f"- Directory contents: {os.listdir(target_path)}")
             return
         
         print("\nFound files:")

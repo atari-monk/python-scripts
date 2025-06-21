@@ -1,11 +1,9 @@
+import os
 from plumbum import cli
 from tool.blog.core.config_crud import ConfigCRUD
-import os
-import subprocess
-import sys
-
 from tool.blog.core.cli import select_target_interactive
 from tool.blog.core.file_sys import list_markdown_files, open_file_with_default_editor, select_file_interactive
+
 
 class OpenFile(cli.Application):
     

@@ -4,25 +4,39 @@ import sys
 from typing import List, Tuple, Optional
 import os
 
-def list_markdown_files(target_path: Path, category: Optional[str] = None) -> List[Tuple[str, str]]:
-    files = []
-    search_path = target_path / category if category else target_path
-    
-    if not search_path.exists():
-        return []
+def list_markdown_files(target_path: Path, category: Optional[str] = None, verbose: bool = False) -> List[Tuple[str, str]]:
+        files = []
+        search_path = target_path / category if category else target_path
         
-    for root, _, filenames in os.walk(search_path):
-        rel_path = os.path.relpath(root, target_path)
-        if rel_path == '.':
-            file_category = ''
-        else:
-            file_category = rel_path.replace("\\", "/")
+        if verbose:
+            print(f"DEBUG: Searching in path: {search_path}")
+            
+        if not search_path.exists():
+            if verbose:
+                print(f"DEBUG: Path does not exist: {search_path}")
+            return []
+            
+        if verbose:
+            print(f"DEBUG: Path exists. Walking directory...")
+            
+        for root, _, filenames in os.walk(search_path):
+            rel_path = os.path.relpath(root, target_path)
+            if rel_path == '.':
+                file_category = ''
+            else:
+                file_category = rel_path.replace("\\", "/")
+            
+            if verbose:
+                print(f"DEBUG: Current directory: {root} (category: '{file_category}')")
+                print(f"DEBUG: Files in directory: {filenames}")
+            
+            for filename in filenames:
+                if filename.lower().endswith('.md'):
+                    files.append((file_category, filename))
+                    if verbose:
+                        print(f"DEBUG: Found markdown file: {filename} in category: {file_category}")
         
-        for filename in filenames:
-            if filename.endswith('.md'):
-                files.append((file_category, filename))
-    
-    return sorted(files, key=lambda x: (x[0], x[1]))
+        return sorted(files, key=lambda x: (x[0], x[1]))
 
 def select_file_interactive(files: List[Tuple[str, str]]) -> Tuple[str, str]:
     print("\nAvailable files:")

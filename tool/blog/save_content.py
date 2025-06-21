@@ -1,13 +1,12 @@
-from plumbum import cli
-from tool.blog.core.config_crud import ConfigCRUD
 from pathlib import Path
 import pyperclip
-import os
-
+from plumbum import cli
+from tool.blog.core.config_crud import ConfigCRUD
 from tool.blog.core.cli import select_target_interactive
+from tool.blog.core.text import clean_content
+
 
 class SaveContent(cli.Application):
-    """Save clipboard content to a markdown file in the target repository"""
     
     category = cli.SwitchAttr(
         ['-c', '--category'],
@@ -25,35 +24,34 @@ class SaveContent(cli.Application):
     
     def main(self, target_name: str = None):
         config = ConfigCRUD.load()
+        target_path = select_target_interactive(config, target_name)
         
-        # Select target
-        try:
-            target_path = select_target_interactive(config, target_name)
-        except ValueError:
-            return 1
-        
-        # Get category
         if not self.category:
-            self.category = input(
-                "Enter category path (e.g. 'tech/python' or leave empty): ").strip()
+            self.category = input("Category path [e.g. 'tech/python']: ").strip()
         
-        # Get filename
         if not self.filename:
-            self.filename = input(
-                "Enter filename (without extension): ").strip()
+            self.filename = input("Filename (without extension): ").strip()
         
-        # Create full path
         full_path = target_path / self.category if self.category else target_path
         self._create_folder_if_not_exists(full_path)
         
-        # Get content from clipboard
-        input("Copy content to clipboard and press Enter...")
-        content = pyperclip.paste()
-        
-        # Save to file
         file_path = full_path / f"{self.filename}.md"
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
+        print(f"\nReady to save to: {file_path}")
         
-        print(f"Saved to: {file_path}")
+        with open(file_path, "a", encoding="utf-8") as f:
+            while True:
+                user_input = input("\nPress Enter to append clipboard (or 'q' to quit)... ")
+                if user_input.lower() == 'q':
+                    break
+                
+                content = pyperclip.paste().strip()
+                if not content:
+                    print("Clipboard is empty - nothing to append")
+                    continue
+                
+                cleaned_content = clean_content(content)
+                f.write(f"{cleaned_content}\n\n")
+                print("✓ Appended (formatted)")
+        
+        print(f"\nDone. Content saved to: {file_path}")
         return 0
